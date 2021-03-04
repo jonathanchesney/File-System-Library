@@ -283,9 +283,36 @@ int fs_create(const char *filename)
 
 int fs_delete(const char *filename)
 {
-    //printf("fs_delete\n");
-    return -1;
-	/* TODO: Phase 2 */
+
+    // Start delete process
+    int i;
+    for (i = 0; i < FS_FILE_MAX_COUNT; i++)
+    {
+        // Check if root_dir[i] contains a file before strcmp
+        if (root_dir[i].filename[0] != '\0')
+        {
+            // Let's check if this is the file we want
+            if (strcmp(root_dir[i].filename, filename) == 0)
+            {
+                // "Delete" the file
+                root_dir[i].filename[0] = '\0';
+
+                // Clear FAT
+                uint16_t current_FAT_index = root_dir[i].data_index;
+                uint16_t temp_index;
+                while(current_FAT_index != FAT_EOC)
+                {
+                    temp_index = FAT[current_FAT_index];
+                    FAT[current_FAT_index] = 0;
+                    current_FAT_index = temp_index;
+                }
+                break;
+            }
+        }
+    }
+
+    /* Success */
+    return 0;
 }
 
 int fs_ls(void)
@@ -297,7 +324,7 @@ int fs_ls(void)
         return -1;
     }
     for (int i = 0; i < FS_FILE_MAX_COUNT; ++i) {
-        if (!strcmp(root_dir[i].filename, "")) {
+        if(root_dir[i].filename[0] != '\0') { //changed this line from Andy
             // There exists a file at index i
             printf("file: %s, size: %d, data_blk: %d\n", root_dir[i].filename, root_dir[i].size, root_dir[i].data_index);
         }
