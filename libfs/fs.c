@@ -423,7 +423,7 @@ int fs_lseek(int fd, size_t offset)
 
 int fs_write(int fd, void *buf, size_t count) 
 {
-    //printf("fs_write\n");
+    printf("fs_write\n");
 
     if (SB == NULL || root_dir == NULL || open_files == NULL || FAT == NULL) {
         return -1;
@@ -434,7 +434,7 @@ int fs_write(int fd, void *buf, size_t count)
     }
 
 
-    //printf("size = %d\n", count);
+    printf("size = %d\n", count);
 
     int num_blocks = ceil(count / BLOCK_SIZE);
     int current_blocks = 0;
@@ -442,9 +442,9 @@ int fs_write(int fd, void *buf, size_t count)
     int index = root_dir[open_files[fd].root_index].data_index;
     root_dir[open_files[fd].root_index].size = count;
     ////printf("414\n");
-    //printf("Index = %d\n", index);
+    printf("Index = %d\n", index);
      for (int i = 0; i < 10; ++i) {
-        ////printf("FAT[%d] = %d\n", i, FAT[i]);
+        printf("FAT[%d] = %d\n", i, FAT[i]);
     }
     int temp_indx = index;
     int offset = open_files[fd].offset;
@@ -464,6 +464,8 @@ int fs_write(int fd, void *buf, size_t count)
         //printf("NEED MORE SPACE IN FAT\n");
         //printf("num_blocks = %d\n", num_blocks);
         //printf("index = %d\n", index);
+        printf("\nnum_blokcs = %d\n", num_blocks);
+        printf("filename= %s\n", root_dir[open_files[fd].root_index].filename);
         for (int i = 0; i < num_blocks; ++i) { // not sure if it correctly handles multiblock files
             //printf("Allocated FAT[%d] blk #%d\n", temp_indx, i);
             FAT[temp_indx] = fs_fat_opening();
@@ -518,7 +520,7 @@ int fs_write(int fd, void *buf, size_t count)
 
 int fs_read(int fd, void *buf, size_t count) {
     ////printf("fs_read\n");
-    ////printf("count = %d\n", count);
+   //      printf("count = %d\n", count);
     if (SB == NULL || root_dir == NULL || open_files == NULL || FAT == NULL) {
         return -1;
     }
@@ -534,17 +536,17 @@ int fs_read(int fd, void *buf, size_t count) {
     int bytes_read = 0;
 
     while (offset > BLOCK_SIZE) {
-        //printf("Should even be here?\n");
+      //  printf("Should even be here?\n");
         index = FAT[index];
         offset -= BLOCK_SIZE;
     }
-    //printf("after while, offset: %d\n", offset);
+    printf("after while, offset: %d\n", offset);
 
     int i = 0;
     //printf("FAT[index] = %d\n", FAT[index]);
     //printf("block_read(%d, bounce_buf, %d)\n", index + SB->data_index, bounce_buf + BLOCK_SIZE*i);
     block_read(index + SB->data_index, bounce_buf + BLOCK_SIZE*i);
-    bytes_read += strlen(bounce_buf);
+    bytes_read += strlen(bounce_buf) - offset;
     //printf("FAT[%d] = %d\n", index, FAT[index]);
     while (FAT[index] != FAT_EOC) {
         index = FAT[index];
@@ -552,10 +554,10 @@ int fs_read(int fd, void *buf, size_t count) {
         block_read(index + SB->data_index, bounce_buf + BLOCK_SIZE*i);
         bytes_read += strlen(bounce_buf);
     }
-    //printf("BLOCKREAD()\n");
+    printf("Filename: %s\n", root_dir[open_files[fd].root_index].filename);
 
-    memcpy((int8_t*) buf, bounce_buf + offset, count);
-    open_files[fd].offset += strlen(buf);
+    memcpy((int8_t*) buf, bounce_buf, count);
+ //   open_files[fd].offset += strlen(buf);
     //printf("%d\n", strlen(buf));
     free(bounce_buf);
     return bytes_read;
