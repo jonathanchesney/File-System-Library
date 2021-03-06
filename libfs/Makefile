@@ -1,6 +1,6 @@
 objs := disk.o fs.o
 CC := gcc
-CFLAGS := -Wall -Wextra -O2
+CFLAGS := -Wall -Werror -Wextra -O2
 CFLAGS += -g
 
 libfs.a: $(objs)
