@@ -281,38 +281,43 @@ int fs_create(const char *filename)
     return 0;
 }
 
-int fs_delete(const char *filename) {
-    // Start delete process
+int fs_delete(const char *filename)
+{
+
+     if (strlen(filename) > FS_FILENAME_LEN) {
+        // Invalid filename
+        //printf("Invalid name\n");
+        return -1;
+    }
+
+    if (SB == NULL || FAT == NULL || root_dir == NULL) {
+        // Nothing currently mounted
+        //printf("Nothing mounted\n");
+        return -1;
+    }
+
     int i;
     for (i = 0; i < FS_FILE_MAX_COUNT; i++)
     {
-        // Check if root_dir[i] contains a file before strcmp
         if (root_dir[i].filename[0] != '\0')
-
         {
-            // Let's check if this is the file we want
             if (strcmp((char*)root_dir[i].filename, filename) == 0)
             {
-                // "Delete" the file
                 root_dir[i].filename[0] = '\0';
-
-                // Clear FAT
-                uint16_t current_FAT_index = root_dir[i].data_index;
-                uint16_t temp_index;
-                while(current_FAT_index != FAT_EOC)
+                uint16_t temp_I;
+                uint16_t current_I = root_dir[i].data_index;
+                while(current_I != FAT_EOC)
                 {
-                    temp_index = FAT[current_FAT_index];
-                    FAT[current_FAT_index] = 0;
-                    current_FAT_index = temp_index;
+                    temp_I = FAT[current_I];
+                    FAT[current_I] = 0;
+                    current_I = temp_I;
                 }
                 break;
             }
         }
     }
-    /* Success */
     return 0;
 }
-
 int fs_ls(void)
 {
     printf("FS Ls:\n");
